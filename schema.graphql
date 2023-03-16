@@ -1,0 +1,32 @@
+type Transcription @entity(immutable: true) {
+  id: ID!
+  created_at: BigInt!
+  last_updated_at: BigInt!
+  creator: Bytes!
+  contributors: [Bytes!]!
+  revision_metadata_uris: [String!]
+  reference_source_media: String
+  reference_source_media_metadata_uri: String
+  id_request: Request!
+  communities: [String!]
+}
+
+type Revision @entity(immutable: true) {
+  id: ID!
+  transcript_id: Transcription!
+  creator: Bytes!
+  content_uri: String!
+  state: Int!
+}
+
+type Request @entity(immutable: true) {
+  id: ID!
+  created_at: BigInt!
+  last_updated_at: BigInt!
+  creator: Bytes!
+  receiving_transcripts: Boolean!
+  fulfilled: Boolean!
+  original_media_metadata_uri: String!
+  reference_source_media: String!
+  metadata_uri: String!
+}
