@@ -7,7 +7,8 @@ import {
   transcriptDeleted as transcriptDeletedEvent,
   revisionCreated as revisionCreatedEvent,
   revisionStateChanged as revisionStateChangedEvent,
-  requestStateUpdate as requestStateUpdateEvent
+  requestStateUpdate as requestStateUpdateEvent,
+  transcriptApproved as transcriptApprovedEvent
 } from "../generated/Grimoire/Grimoire"
 import {
   Transcription,
@@ -23,8 +24,6 @@ export function handlerequestCreated(event: requestCreatedEvent): void {
     request.last_updated_at = event.params.last_updated_at
     request.creator = event.params.creator
     request.fulfilled = event.params.fulfilled
-    request.original_media_metadata_uri = event.params.original_media_metadata_uri
-    request.reference_source_media = event.params.reference_source_media
     request.metadata_uri = event.params.metadata_uri
     request.save()
 
@@ -108,5 +107,11 @@ export function handlerequestStateUpdated(event: requestStateUpdateEvent): void{
       request.receiving_transcripts = event.params.receiving_transcripts;
     }
     request.save();
+  }
+}
+export function handletranscriptApproved(event: transcriptApprovedEvent): void{
+  let request = Request.load(event.params.request_id.toHex());
+  if (request){
+    request.id_linked_transcription = event.params.transcript_id.toString();
   }
 }

@@ -5,7 +5,6 @@ type Transcription @entity(immutable: true) {
   creator: Bytes!
   contributors: [Bytes!]!
   revision_metadata_uris: [String!]
-  reference_source_media: String
   reference_source_media_metadata_uri: String
   id_request: Request!
   communities: [String!]
@@ -26,7 +25,7 @@ type Request @entity(immutable: true) {
   creator: Bytes!
   receiving_transcripts: Boolean!
   fulfilled: Boolean!
-  original_media_metadata_uri: String!
-  reference_source_media: String!
   metadata_uri: String!
+  collaborators: [Bytes!]!
+  id_linked_transcription: Transcription!
 }
