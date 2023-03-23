@@ -4,7 +4,7 @@ type Transcription @entity(immutable: false) {
   last_updated_at: BigInt!
   creator: Bytes!
   contributors: [Bytes!]
-  revision_metadata_uris: [MetadataRevision!]
+  revision_metadata_uris: [MetadataRevision!]!
   reference_source_media_metadata_uri: String
   id_request: Request
   communities: [String!]
@@ -14,7 +14,7 @@ type Revision @entity(immutable: false) {
   id: ID!
   transcript_id: Transcription
   creator: Bytes!
-  content_uri: String
+  content_uri: MetadataRevision
   state: Int!
 }
 

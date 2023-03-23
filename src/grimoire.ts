@@ -1,4 +1,4 @@
-import { store, log, Bytes } from "@graphprotocol/graph-ts";
+import { store, log, Bytes, DataSourceContext } from "@graphprotocol/graph-ts";
 
 import {
   requestCreated as requestCreatedEvent,
@@ -15,23 +15,23 @@ import {
   Revision,
   Request
 } from "../generated/schema"
-import { GrimoireMetadataTemplate } from '../generated/templates';
-
-
+import {GrimoireMetadataTemplate} from '../generated/templates';
 export function handlerequestCreated(event: requestCreatedEvent): void {
-  let request = Request.load(event.params.request_id.toHexString().toString());
-  if (request){
-    request = new Request(event.params.request_id.toHexString.toString());
+  let request = Request.load(event.params.request_id.toHexString());
+  if (request === null){
+    request = new Request(event.params.request_id.toHexString());
     request.created_at = event.params.created_at
     request.last_updated_at = event.params.last_updated_at
     request.creator = event.params.creator
     request.receiving_transcripts = event.params.receiving_transcripts
     request.fulfilled = event.params.fulfilled
     request.metadata_uri = event.params.metadata_uri
-    request.collaborators = event.params.collaborators;
+    let context = new DataSourceContext();
+    context.setString("setting", "request");
+    GrimoireMetadataTemplate.createWithContext(event.params.metadata_uri, context)
     request.save()
-
   }
+
 }
 export function handlerequestDeleted(event: requestDeletedEvent): void {
   let id = event.params.request_id.toHexString();
@@ -48,10 +48,7 @@ export function handletranscriptCreated(event: transcriptCreatedEvent): void {
     transcript.contributors = event.params.contributors.map<Bytes>((a: Bytes) => a)
     transcript.revision_metadata_uris = event.params.revision_metadata_uris
     if (event.params.revision_metadata_uris.length != 0){
-      const metadataIpfsHash =  `${event.params.revision_metadata_uris[0]}`
-      GrimoireMetadataTemplate.create(metadataIpfsHash);
       transcript.revision_metadata_uris = event.params.revision_metadata_uris
-
     }
     else {
       transcript.revision_metadata_uris = []
@@ -74,14 +71,17 @@ export function handlerevisionStateChanged(event: revisionStateChangedEvent): vo
   if (state === 1){
     revision.state = state;
     let transcript = Transcription.load(event.params.id_transcript.toHexString());
-    /*if (transcript && transcript.revision_metadata_uris){ changing event to emit a whole array instead of a single value
-
-      transcript.revision_metadata_uris[transcript.revision_metadata_uris.length] = newRevisions
-    }*/
+    if (transcript && transcript.revision_metadata_uris){ 
+      let new_revision_uris = transcript.revision_metadata_uris
+      new_revision_uris.push(event.params.id_revision.toHexString())
+      transcript.revision_metadata_uris = new_revision_uris;
+      transcript.save()
+    }
   }
   else if (state === 2) {
     revision.state = event.params.state;
   }
+  revision.save()
 }
 }
 
@@ -93,7 +93,10 @@ export function handlerevisionCreate(event: revisionCreatedEvent): void{
     revision.content_uri = event.params.content_uri
     revision.state = event.params.state
     revision.creator = event.params.creator
-    revision.transcript_id = event.params.transcript_id.toString()
+    revision.transcript_id = event.params.transcript_id.toHexString()
+    let context = new DataSourceContext();
+    context.setString("setting", "revision");
+    GrimoireMetadataTemplate.createWithContext(event.params.content_uri, context)
     revision.save()
   }
 }
