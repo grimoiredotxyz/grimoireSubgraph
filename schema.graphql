@@ -1,31 +1,58 @@
-type Transcription @entity(immutable: true) {
+type Transcription @entity(immutable: false) {
   id: ID!
   created_at: BigInt!
   last_updated_at: BigInt!
   creator: Bytes!
-  contributors: [Bytes!]!
-  revision_metadata_uris: [String!]
+  contributors: [Bytes!]
+  revision_metadata_uris: [MetadataRevision!]
   reference_source_media_metadata_uri: String
-  id_request: Request!
+  id_request: Request
   communities: [String!]
 }
 
-type Revision @entity(immutable: true) {
+type Revision @entity(immutable: false) {
   id: ID!
-  transcript_id: Transcription!
+  transcript_id: Transcription
   creator: Bytes!
-  content_uri: String!
+  content_uri: String
   state: Int!
 }
 
-type Request @entity(immutable: true) {
+type Request @entity(immutable: false) {
   id: ID!
   created_at: BigInt!
   last_updated_at: BigInt!
   creator: Bytes!
   receiving_transcripts: Boolean!
   fulfilled: Boolean!
-  metadata_uri: String!
-  collaborators: [Bytes!]!
-  id_linked_transcription: Transcription!
+  metadata_uri: String
+  collaborators: [Bytes!]
+  id_linked_transcription: Transcription
 }
+
+type MetadataRevision  @entity(immutable: false){
+  id: ID!
+  source_media_uris: String
+  source_media_title: String
+  title: String
+  language: String
+  keywords: String
+  notes: String
+  change_type: String,
+  change_description: String
+  transcription_plain_text: String
+  srt_file_uri: String
+  vtt_file_uri: String
+  lrc_file_uri: String
+}
+
+
+type RequestMetadata @entity(immutable: false){
+  id: ID!
+  source_media_uris: String
+  source_media_title: String
+  notes: String
+  language: String
+  keywords: String  
+}
+

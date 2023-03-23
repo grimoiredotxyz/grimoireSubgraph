@@ -1,4 +1,4 @@
-import { ipfs, store, log, json, Bytes, JSONValue} from "@graphprotocol/graph-ts";
+import { store, log, Bytes } from "@graphprotocol/graph-ts";
 
 import {
   requestCreated as requestCreatedEvent,
@@ -15,79 +15,80 @@ import {
   Revision,
   Request
 } from "../generated/schema"
+import { GrimoireMetadataTemplate } from '../generated/templates';
+
 
 export function handlerequestCreated(event: requestCreatedEvent): void {
-  let request = Request.load(event.params.request_id.toHex());
-  if (request === null ){
-    request = new Request(event.params.request_id.toHex());
+  let request = Request.load(event.params.request_id.toHexString().toString());
+  if (request){
+    request = new Request(event.params.request_id.toHexString.toString());
     request.created_at = event.params.created_at
     request.last_updated_at = event.params.last_updated_at
     request.creator = event.params.creator
+    request.receiving_transcripts = event.params.receiving_transcripts
     request.fulfilled = event.params.fulfilled
     request.metadata_uri = event.params.metadata_uri
+    request.collaborators = event.params.collaborators;
     request.save()
 
   }
 }
 export function handlerequestDeleted(event: requestDeletedEvent): void {
-  let id = event.params.request_id.toHex();
+  let id = event.params.request_id.toHexString();
   store.remove('Request', id);
 }
 export function handletranscriptCreated(event: transcriptCreatedEvent): void {
-  let transcript = Transcription.load(event.params.transcript_id.toHex());
+  let transcript = Transcription.load(event.params.transcript_id.toHexString());
   if (transcript === null ){
-    transcript = new Transcription(event.params.transcript_id.toHex());
+    transcript = new Transcription(event.params.transcript_id.toHexString());
 
     transcript.created_at = event.params.created_at
     transcript.last_updated_at = event.params.last_updated_at
     transcript.creator = event.params.creator
     transcript.contributors = event.params.contributors.map<Bytes>((a: Bytes) => a)
     transcript.revision_metadata_uris = event.params.revision_metadata_uris
-    transcript.id_request = event.params.id_request.toString()
+    if (event.params.revision_metadata_uris.length != 0){
+      const metadataIpfsHash =  `${event.params.revision_metadata_uris[0]}`
+      GrimoireMetadataTemplate.create(metadataIpfsHash);
+      transcript.revision_metadata_uris = event.params.revision_metadata_uris
+
+    }
+    else {
+      transcript.revision_metadata_uris = []
+    }
+    transcript.id_request = event.params.id_request.toHexString()
     transcript.communities = event.params.communities
     transcript.save()
   }
 }
 
 
-/*
-export function handlerequestFullfiled(event: requestFullfiledEvent): void {
-  let entity = new Request(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.request_id = event.params.request_id
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-*/
 export function handletranscriptDeleted(event: transcriptDeletedEvent): void {
-  let id = event.params.transcript_id.toHex();
-  store.remove('Transcript', id);
+  let id = event.params.transcript_id.toHexString();
+  store.remove('Transcription', id);
 }
 export function handlerevisionStateChanged(event: revisionStateChangedEvent): void{
-  let revision = Revision.load(event.params.id_revision.toHex());
-  let state = event.params.state;
+  let revision = Revision.load(event.params.id_revision.toHexString());
   if (revision){
+    let state = revision.state;
   if (state === 1){
     revision.state = state;
-    let transcript = Transcription.load(event.params.id_transcript.toHex());
-    if (transcript){
-    }
+    let transcript = Transcription.load(event.params.id_transcript.toHexString());
+    /*if (transcript && transcript.revision_metadata_uris){ changing event to emit a whole array instead of a single value
+
+      transcript.revision_metadata_uris[transcript.revision_metadata_uris.length] = newRevisions
+    }*/
   }
   else if (state === 2) {
-    revision.state;
+    revision.state = event.params.state;
   }
 }
 }
 
 export function handlerevisionCreate(event: revisionCreatedEvent): void{
-  let revision = Revision.load(event.params.id_revision.toHex());
+  let revision = Revision.load(event.params.id_revision.toHexString());
   if (revision === null ){
-    revision = new Revision(event.params.id_revision.toHex());
+    revision = new Revision(event.params.id_revision.toHexString());
 
     revision.content_uri = event.params.content_uri
     revision.state = event.params.state
@@ -98,7 +99,7 @@ export function handlerevisionCreate(event: revisionCreatedEvent): void{
 }
 
 export function handlerequestStateUpdated(event: requestStateUpdateEvent): void{
-  let request = Request.load(event.params.request_id.toHex());
+  let request = Request.load(event.params.request_id.toHexString());
   if (request){
     if (event.params.fulfilled != request.fulfilled){
       request.fulfilled = event.params.fulfilled;
@@ -110,8 +111,8 @@ export function handlerequestStateUpdated(event: requestStateUpdateEvent): void{
   }
 }
 export function handletranscriptApproved(event: transcriptApprovedEvent): void{
-  let request = Request.load(event.params.request_id.toHex());
+  let request = Request.load(event.params.request_id.toHexString());
   if (request){
-    request.id_linked_transcription = event.params.transcript_id.toString();
+    request.id_linked_transcription = event.params.transcript_id.toHexString();
   }
 }
