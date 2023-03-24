@@ -12,7 +12,7 @@ type Transcription @entity(immutable: false) {
 
 type Revision @entity(immutable: false) {
   id: ID!
-  transcript_id: Transcription
+  transcript_id: Bytes
   creator: Bytes!
   content_uri: MetadataRevision
   state: Int!
@@ -25,7 +25,8 @@ type Request @entity(immutable: false) {
   creator: Bytes!
   receiving_transcripts: Boolean!
   fulfilled: Boolean!
-  metadata_uri: String
+  metadata_uri_link: String
+  metadata_uri: MetadataRequest
   collaborators: [Bytes!]
   id_linked_transcription: Transcription
 }
@@ -47,7 +48,7 @@ type MetadataRevision  @entity(immutable: false){
 }
 
 
-type RequestMetadata @entity(immutable: false){
+type MetadataRequest @entity(immutable: false){
   id: ID!
   source_media_uris: String
   source_media_title: String

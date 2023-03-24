@@ -25,10 +25,13 @@ export function handlerequestCreated(event: requestCreatedEvent): void {
     request.creator = event.params.creator
     request.receiving_transcripts = event.params.receiving_transcripts
     request.fulfilled = event.params.fulfilled
-    request.metadata_uri = event.params.metadata_uri
+    const metadata_ipfs_hash = `${event.params.metadata_uri.replace('ipfs://', '')}`
+    request.metadata_uri_link = event.params.metadata_uri
     let context = new DataSourceContext();
-    context.setString("setting", "request");
-    GrimoireMetadataTemplate.createWithContext(event.params.metadata_uri, context)
+    context.setString('setting', 'REQUEST');
+    GrimoireMetadataTemplate.createWithContext(metadata_ipfs_hash, context)
+    request.metadata_uri = metadata_ipfs_hash
+
     request.save()
   }
 
@@ -67,18 +70,7 @@ export function handletranscriptDeleted(event: transcriptDeletedEvent): void {
 export function handlerevisionStateChanged(event: revisionStateChangedEvent): void{
   let revision = Revision.load(event.params.id_revision.toHexString());
   if (revision){
-    let state = revision.state;
-  if (state === 1){
-    revision.state = state;
-    let transcript = Transcription.load(event.params.id_transcript.toHexString());
-    if (transcript && transcript.revision_metadata_uris){ 
-      let new_revision_uris = transcript.revision_metadata_uris
-      new_revision_uris.push(event.params.id_revision.toHexString())
-      transcript.revision_metadata_uris = new_revision_uris;
-      transcript.save()
-    }
-  }
-  else if (state === 2) {
+  if (event.params.state){
     revision.state = event.params.state;
   }
   revision.save()
@@ -89,15 +81,25 @@ export function handlerevisionCreate(event: revisionCreatedEvent): void{
   let revision = Revision.load(event.params.id_revision.toHexString());
   if (revision === null ){
     revision = new Revision(event.params.id_revision.toHexString());
-
+    
     revision.content_uri = event.params.content_uri
     revision.state = event.params.state
     revision.creator = event.params.creator
-    revision.transcript_id = event.params.transcript_id.toHexString()
+    revision.transcript_id = event.params.transcript_id
+    const metadata_ipfs_hash = `${event.params.content_uri.replace('ipfs://', '')}`
+    let transcript = Transcription.load(event.params.transcript_id.toHexString());
+    if (transcript){
+      let new_revision_uris = transcript.revision_metadata_uris
+      new_revision_uris.push(metadata_ipfs_hash)
+      transcript.save()
+    }
     let context = new DataSourceContext();
-    context.setString("setting", "revision");
-    GrimoireMetadataTemplate.createWithContext(event.params.content_uri, context)
+    context.setString('setting', 'REVISION');
+    GrimoireMetadataTemplate.createWithContext(metadata_ipfs_hash, context)
+    revision.content_uri = metadata_ipfs_hash
+
     revision.save()
+
   }
 }
 
