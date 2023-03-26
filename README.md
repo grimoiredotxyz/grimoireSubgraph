@@ -42,5 +42,9 @@ If type is 'REVISION', the function extracts the metadata values from the conten
 ## The graph hosted service
 https://thegraph.com/hosted-service/subgraph/timotejgerzelj/grimoire-subgraph
 
+## We found a bug after recording the video soo here is the old address we used for the demo and the new one after the demo
+* Old: 0xD9f939e8eCD876Ca0908E8CE35C109161488E895
+* New: 0xaCA5bbE605f528bb5D101abe352cA390E7E70d09
+
 ## License
 This project is licensed under the GNU General Public License v3.0

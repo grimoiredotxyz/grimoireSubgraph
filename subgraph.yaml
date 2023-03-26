@@ -8,9 +8,9 @@ dataSources:
     name: Grimoire
     network: mumbai
     source:
-      address: "0xD9f939e8eCD876Ca0908E8CE35C109161488E895"
+      address: "0xaCA5bbE605f528bb5D101abe352cA390E7E70d09"
       abi: Grimoire
-      startBlock: 33506256
+      startBlock: 33588638
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
